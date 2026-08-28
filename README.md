@@ -104,7 +104,7 @@
                                               v
                               +-------------------------------+
                               |    Physical RC Car Vehicle    |
-                              |   (D6:C5:29:61:63:AE)         |
+                              |   (Pair via [B] Scan Option)  |
                               +-------------------------------+
 ```
 
@@ -251,7 +251,7 @@ python controller.py --cam "http://192.168.31.239:8080/video"
 | Variable / Key | Default | Description |
 |---|---|---|
 | `GEMINI_API_KEY` | `None` | Google Gemini API Key for VLM brain and AI room mapping. |
-| `CAR_MAC` | `D6:C5:29:61:63:AE` | Bluetooth MAC Address of the physical RC car. |
+| `CAR_MAC` | `None` | Bluetooth MAC Address of the physical RC car (or auto-discover via `[B]`). |
 | `DEFAULT_CAMERA` | `0` | Default camera device index or Phone stream URL. |
 
 ---

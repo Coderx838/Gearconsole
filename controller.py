@@ -69,13 +69,13 @@ logger = logging.getLogger("GearConsole")
 
 
 class GearConsoleEngine:
-    def __init__(self, mac_address: str = DEFAULT_MAC, camera_source: any = 0, gemini_api_key: Optional[str] = None):
-        self.mac_address = mac_address
+    def __init__(self, mac_address: Optional[str] = None, camera_source: any = 0, gemini_api_key: Optional[str] = None):
+        # Subsystems
+        self.driver = BLECarDriver(mac_address=mac_address, flag_bit=PROFILE_SUPERCAR)
+        self.mac_address = mac_address or self.driver.mac_address
         self.camera_source = int(camera_source) if str(camera_source).isdigit() else camera_source
         self.gemini_api_key = gemini_api_key
 
-        # Subsystems
-        self.driver = BLECarDriver(mac_address=mac_address, flag_bit=PROFILE_SUPERCAR)
         self.odometry = SpatialOdometry()
         self.room_mapper = RoomMapper()
         self.green_tracker = GreenCrossTracker()
@@ -735,19 +735,25 @@ class GearConsoleEngine:
     async def run(self):
         boot_sequence()
 
-        # 1. Attempt initial BLE connection (4.0s)
-        connected = await self.driver.connect(timeout=4.0)
-        if connected:
-            console.print(f"[bold green](*) {APP_NAME} synchronized with BLE Car [{self.mac_address}][/bold green]")
-            self.voice.speak(f"{APP_NAME} connected and ready.")
+        # 1. Attempt initial BLE connection if MAC is configured
+        if self.mac_address:
+            connected = await self.driver.connect(timeout=4.0)
+            if connected:
+                console.print(f"[bold green](*) {APP_NAME} synchronized with BLE Car [{self.mac_address}][/bold green]")
+                self.voice.speak(f"{APP_NAME} connected and ready.")
+            else:
+                console.print(f"[bold yellow][!] Car [{self.mac_address}] not detected at launch.[/bold yellow]")
+                console.print("[dim]Starting in Standby / Simulation mode. Use option [B] to scan for devices anytime.[/dim]\n")
+                self.voice.speak(f"{APP_NAME} ready in standby mode.")
         else:
-            console.print(f"[bold yellow][!] Car [{self.mac_address}] not detected at launch.[/bold yellow]")
-            console.print("[dim]Starting in Standby / Simulation mode. Use option [B] to scan for devices anytime.[/dim]\n")
+            console.print("[bold yellow][!] No BLE Car configured yet.[/bold yellow]")
+            console.print("[dim]Starting in Standby / Simulation mode. Use option [B] to scan and pair your Bluetooth car.[/dim]\n")
             self.voice.speak(f"{APP_NAME} ready in standby mode.")
 
         while not self.should_exit:
             cam_label = "Laptop WebCam (0)" if self.camera_source == 0 else f"Phone/Stream ({self.camera_source})"
-            menu_panel = render_menu(cam_source=cam_label, is_connected=self.driver.is_connected, mac=self.mac_address)
+            mac_label = self.mac_address if self.mac_address else "Unpaired (Scan with [B])"
+            menu_panel = render_menu(cam_source=cam_label, is_connected=self.driver.is_connected, mac=mac_label)
             console.print(menu_panel)
 
             try:
@@ -852,7 +858,7 @@ class GearConsoleEngine:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=f"{APP_NAME} v{APP_VERSION}: Autonomous RC Car AI Autopilot")
-    parser.add_argument("--mac", type=str, default=DEFAULT_MAC, help="Target Car Bluetooth MAC Address")
+    parser.add_argument("--mac", type=str, default=None, help="Target Car Bluetooth MAC Address (optional)")
     parser.add_argument("--cam", type=str, default="0", help="Camera index or Phone Stream URL")
     parser.add_argument("--key", type=str, default=None, help="Gemini API Key (optional)")
     args = parser.parse_args()

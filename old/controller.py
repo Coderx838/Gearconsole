@@ -2,7 +2,7 @@
 # from bleak import BleakClient
 # from pynput import keyboard
 
-# TARGET_MAC = "D6:C5:29:61:63:AE"
+# TARGET_MAC = "XX:XX:XX:XX:XX:XX"
 # NOTIFY_CHAR_UUID = "0000fff1-0000-1000-8000-00805f9b34fb"
 # WRITE_CHAR_UUID  = "0000fff2-0000-1000-8000-00805f9b34fb"
 
@@ -154,7 +154,7 @@ import asyncio
 from bleak import BleakClient
 from pynput import keyboard
 
-TARGET_MAC = "D6:C5:29:61:63:AE"
+TARGET_MAC = "XX:XX:XX:XX:XX:XX"
 NOTIFY_CHAR_UUID = "0000fff1-0000-1000-8000-00805f9b34fb"
 WRITE_CHAR_UUID  = "0000fff2-0000-1000-8000-00805f9b34fb"
 

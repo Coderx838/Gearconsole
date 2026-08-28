@@ -9,7 +9,7 @@ This repository contains a full reverse-engineered driver and autonomous AI auto
 From deep inspection of the APK (`0_LCW_RCcar_1.0.3.apk`) and decompilation of `app-service.js`, the car communicates over **Bluetooth Low Energy (BLE)** using a 10-byte binary packet transmitted every **140 milliseconds**.
 
 ### BLE GATT Services & Characteristics
-- **Target MAC Address**: `D6:C5:29:61:63:AE` (or discovered via scan)
+- **Target MAC Address**: `XX:XX:XX:XX:XX:XX` (or discovered via scan)
 - **Notify Characteristic UUID**: `0000fff1-0000-1000-8000-00805f9b34fb` (Telemetry handshake)
 - **Write Characteristic UUID**: `0000fff2-0000-1000-8000-00805f9b34fb` (Motor control stream)
 
@@ -89,7 +89,7 @@ All dependencies are isolated inside the `./venv` directory.
 python autopilot_engine.py
 
 # Optional Arguments:
-# --mac   <MAC_ADDRESS>   (Default: D6:C5:29:61:63:AE)
+# --mac   <MAC_ADDRESS>   (Default: XX:XX:XX:XX:XX:XX)
 # --cam   <CAMERA_INDEX>  (Default: 0 for built-in/USB webcam)
 # --key   <GEMINI_API_KEY> (For multimodal LLM vision brain)
 ```

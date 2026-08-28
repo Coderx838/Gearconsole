@@ -47,7 +47,7 @@ import os
 import json
 
 # Default UUIDs reverse-engineered from app-service.js
-DEFAULT_MAC = "D6:C5:29:61:63:AE"
+DEFAULT_MAC = None
 NOTIFY_CHAR_UUID = "0000fff1-0000-1000-8000-00805f9b34fb"
 WRITE_CHAR_UUID  = "0000fff2-0000-1000-8000-00805f9b34fb"
 
@@ -57,8 +57,8 @@ PROFILE_DUMPER   = 0x02
 PROFILE_EXCAVATOR = 0x03
 
 
-def load_mac_address() -> str:
-    """Dynamically loads car MAC address from environment, .env, config.json, or fallback default."""
+def load_mac_address() -> Optional[str]:
+    """Dynamically loads car MAC address from environment, .env, or config.json. Returns None if not configured."""
     if os.environ.get("CAR_MAC"):
         return os.environ.get("CAR_MAC").strip()
     if os.environ.get("CAR_MAC_ADDRESS"):
@@ -88,7 +88,7 @@ def load_mac_address() -> str:
         except Exception:
             pass
 
-    return DEFAULT_MAC
+    return None
 
 
 def save_mac_address(mac_address: str):
@@ -221,6 +221,11 @@ class BLECarDriver:
 
     async def connect(self, timeout: float = 10.0) -> bool:
         """Connects to the car via BLE GATT client and validates vehicle characteristics."""
+        if not self.mac_address:
+            logger.info("No car MAC address configured. Running in Standby / Simulation mode.")
+            self.is_connected = False
+            return False
+
         if BleakClient is None:
             logger.error("bleak is not installed. Please install bleak (pip install bleak).")
             return False

@@ -1,7 +1,7 @@
 import asyncio
 from bleak import BleakClient
 
-TARGET_MAC = "D6:C5:29:61:63:AE"
+TARGET_MAC = "XX:XX:XX:XX:XX:XX"
 
 async def scan_services():
     print(f"Connecting to {TARGET_MAC} to list all services and characteristics...")
