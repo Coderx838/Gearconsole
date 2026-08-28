@@ -176,17 +176,10 @@ RC_controller/
 │   ├── voice_engine.py    # Speech recognition (STT) & audio feedback (TTS)
 │   └── ui_theme.py        # Cyberpunk Rich Terminal UI & animation engine
 │
-├── spatial/               # 2D Localization, Odometry & Multi-Room Mapping
-│   ├── __init__.py
-│   ├── spatial_odometry.py# 2D localization kinematics & spatial ASCII maps
-│   └── room_mapper.py     # Multi-room floorplan management & pathfinding
-│
-└── old/                   # Archived legacy trial scripts and dumping tools
-    ├── dump.py
-    ├── scan.py
-    ├── test.py
-    ├── controller.py
-    └── F_controller.py
+└── spatial/               # 2D Localization, Odometry & Multi-Room Mapping
+    ├── __init__.py
+    ├── spatial_odometry.py# 2D localization kinematics & spatial ASCII maps
+    └── room_mapper.py     # Multi-room floorplan management & pathfinding
 ```
 
 ---

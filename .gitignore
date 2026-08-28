@@ -26,6 +26,7 @@ scratch/
 .system_generated/
 
 # Logs, Dumps & Temporary Files
+old/
 *.log
 *.tmp
 build/
