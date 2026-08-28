@@ -11,6 +11,7 @@ scan and generate a complete home map:
 =============================================================================
 """
 
+from __future__ import annotations
 import os
 import time
 import json
