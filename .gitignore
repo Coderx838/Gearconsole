@@ -43,3 +43,9 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# GitRisk: added missing security patterns
+*.key
+*.pem
+*.p12
+*.pfx
