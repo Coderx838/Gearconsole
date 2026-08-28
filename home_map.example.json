@@ -1,0 +1,46 @@
+{
+  "starting_anchor": {
+    "name": "Main Door / Start Point",
+    "x": 0.0,
+    "y": 0.0,
+    "heading_degrees": 0.0
+  },
+  "rooms": [
+    {
+      "name": "Living Room",
+      "x_min": 0.0,
+      "y_min": 0.0,
+      "x_max": 4.0,
+      "y_max": 3.5,
+      "landmarks": [
+        { "name": "Sofa", "x": 1.2, "y": 2.5 },
+        { "name": "TV Stand", "x": 3.0, "y": 0.6 }
+      ]
+    },
+    {
+      "name": "Hallway",
+      "x_min": 4.0,
+      "y_min": 1.0,
+      "x_max": 6.5,
+      "y_max": 2.5,
+      "landmarks": [
+        { "name": "Shoe Rack", "x": 4.5, "y": 1.2 }
+      ]
+    },
+    {
+      "name": "Bedroom",
+      "x_min": 6.5,
+      "y_min": 0.0,
+      "x_max": 10.0,
+      "y_max": 4.0,
+      "landmarks": [
+        { "name": "Desk", "x": 8.8, "y": 3.2 },
+        { "name": "Bed", "x": 8.5, "y": 1.5 }
+      ]
+    }
+  ],
+  "doorways": [
+    { "name": "Living to Hallway Door", "x": 4.0, "y": 1.8, "connects": ["Living Room", "Hallway"] },
+    { "name": "Hallway to Bedroom Door", "x": 6.5, "y": 1.8, "connects": ["Hallway", "Bedroom"] }
+  ]
+}

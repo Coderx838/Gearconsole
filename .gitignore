@@ -1,0 +1,44 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Environment variables & API keys (CRITICAL: NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+config.json
+
+# Local Custom Maps & Artifacts
+home_map.json
+artifact/
+scratch/
+.system_generated/
+
+# Logs, Dumps & Temporary Files
+*.log
+*.tmp
+build/
+dist/
+*.egg-info/
+
+# IDE & Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
