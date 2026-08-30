@@ -195,8 +195,8 @@ RC_controller/
 
 ```powershell
 # Clone the repository
-git clone https://github.com/your-username/gear-console.git
-cd gear-console
+git clone https://github.com/Coderx838/Gearconsole.git
+cd Gearconsole
 
 # Create and activate virtual environment
 python -m venv venv
