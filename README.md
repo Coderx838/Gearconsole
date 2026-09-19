@@ -1,80 +1,73 @@
-# 🕹️ GEAR CONSOLE: Autonomous AI RC Vehicle Intelligence System
+# Gear Console
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.0.3-00ffff.svg?style=for-the-badge&logo=appveyor" alt="Version">
-  <img src="https://img.shields.io/badge/Status-Under%20Active%20Development-yellow.svg?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-00ff88.svg?style=for-the-badge&logo=python" alt="Python">
-  <img src="https://img.shields.io/badge/UI-Cyberpunk%20Rich%20Terminal-b800ff.svg?style=for-the-badge" alt="Terminal UI">
-  <img src="https://img.shields.io/badge/Brain-Google%20Gemini%20VLM-ffaa00.svg?style=for-the-badge&logo=google" alt="Gemini">
-  <img src="https://img.shields.io/badge/Protocol-BLE%20GATT%20140ms-7000ff.svg?style=for-the-badge&logo=bluetooth" alt="BLE">
-  <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg?style=for-the-badge" alt="License">
-</p>
+Autonomous AI control software for a Bluetooth Low Energy (BLE) remote-control vehicle.
 
-```
-  ____  _____     _     ____     ____  _____  _   _  ____  _____  _      _____ 
- / ___|| ____|   / \   |  _ \   / ___|/ _ \ \| \ | |/ ___|| _ \ || |    | ____|
-| |  _ |  _|    / _ \  | |_) | | |   | | | | |  \| |\___ \| | | || |    |  _|  
-| |_| || |___  / ___ \ |  _ <  | |___| |_| | | |\  | ___) | |_| || |___ | |___ 
- \____||_____|/_/   \_\|_| \_\  \____|\___/ /|_| \_||____/|____/ |_____||_____|
-   >> GEAR CONSOLE   v1.0.3  --- Autonomous AI RC Vehicle Intelligence System
-```
+## Project status and disclaimer
 
-> [!WARNING]
-> ### ⚠️ Project Status & Honest Developer Disclaimer
-> **This project is an experimental work-in-progress (WIP) and is actively under development.**
-> - **Expect bugs, quirks, and rough edges**: Bluetooth disconnects, optical tracker sensitivity to room lighting, and API latency can affect performance.
-> - **No False Claims / Hardware Reality**: Toy RC cars lack expensive hardware like onboard LiDAR, wheel encoders, or IMUs. Spatial tracking is done via **overhead camera color tracking** or **time-based dead-reckoning kinematics** (which accumulates wheel slip on smooth tiles/carpets over time). LLM reasoning latency depends on cloud API roundtrip times (~1.5s - 2.5s).
-> - You are welcome to test, tinker, report bugs, and submit pull requests!
+This project is an experimental work in progress and is actively under development. It has not been validated as a safety-critical vehicle-control system.
 
----
+Known limitations include:
 
-## 📑 Table of Contents
-- [🌟 Real Features & How They Work](#-real-features--how-they-work)
-- [🏛️ System Architecture](#-system-architecture)
-- [🕹️ Autonomous Operating Modes](#-autonomous-operating-modes)
-- [📡 Reverse-Engineered Binary Protocol](#-reverse-engineered-binary-protocol)
-- [📦 Modular Codebase Structure](#-modular-codebase-structure)
-- [🚀 Quick Start Guide](#-quick-start-guide)
-- [📱 Mobile Phone Camera Setup (Overhead Satellite / FPV)](#-mobile-phone-camera-setup-overhead-satellite--fpv)
-- [⚙️ Configuration & Environment Variables](#-configuration--environment-variables)
-- [⚠️ Known Limitations & Troubleshooting](#-known-limitations--troubleshooting)
-- [📄 License & Credits](#-license--credits)
+- Bluetooth disconnects and packet loss may occur, especially with inexpensive toy-car receivers.
+- Optical tracking performance depends on camera placement, lighting, floor contrast, and the visibility of the tracking marker.
+- AI responses introduce network latency and may be incomplete or incorrect.
+- Toy RC cars generally do not include LiDAR, wheel encoders, or inertial measurement units (IMUs). Spatial estimates are therefore based on overhead-camera color tracking and/or dead reckoning rather than onboard sensors.
+- The obstacle-detection and emergency-stop features are software safeguards and do not guarantee collision avoidance.
 
----
+Use the system in a controlled environment. Test at low speed, keep a manual emergency stop available, and do not use it around people, animals, traffic, or property where an unintended movement could cause harm. Contributions, bug reports, and pull requests are welcome.
 
-## 🌟 Real Features & How They Work
+## Contents
 
-### 1. Embodied Multimodal AI Control (Mode 5)
-- Passes camera frames, current room name, estimated $(X, Y)$ position, and 2D ASCII grid representations to Google's **Gemini 3.5 Flash-Lite** API.
-- The model outputs structured JSON with a thought process, natural spoken reply, and sequential pulse movements (`forward`, `left`, `right`, `backward`).
+- [Features](#features)
+- [System architecture](#system-architecture)
+- [Operating modes](#operating-modes)
+- [BLE command protocol](#ble-command-protocol)
+- [Repository structure](#repository-structure)
+- [Quick start](#quick-start)
+- [Mobile phone camera setup](#mobile-phone-camera-setup)
+- [Configuration](#configuration)
+- [Known limitations and troubleshooting](#known-limitations-and-troubleshooting)
+- [License](#license)
 
-### 2. AI Video Walkthrough Multi-Room Floorplan Scanner (Mode S)
-- Captures keyframe snapshots while you walk around your home holding your phone camera.
-- Sends the images to Gemini Vision to detect visible rooms and furniture landmarks, writing the output into [`home_map.json`](home_map.json).
+## Features
 
-### 3. Overhead Satellite Green Cross Optical Tracker
-- Designed for small RC cars that cannot carry a heavy smartphone.
-- An overhead phone or laptop camera tracks a small cross of **green tape** on the car roof using OpenCV HSV color thresholding (`[35, 60, 60]` to `[85, 255, 255]`) to calculate metric position $(X, Y)$ and heading angle $\theta$.
+### Multimodal AI control
 
-### 4. 20Hz Obstacle Reflex Auto-Brake
-- Runs a fast 20Hz OpenCV contour and brightness analysis on the active camera stream.
-- If a large obstacle suddenly fills the forward safety zone, it overrides software commands and sends an immediate stop packet to prevent collisions.
+Mode 5 sends camera frames, the current room name, an estimated `(X, Y)` position, and a two-dimensional ASCII grid to Google's Gemini API. The model is expected to return structured JSON containing a response and a sequence of movement pulses such as `forward`, `left`, `right`, and `backward`.
 
-### 5. Fault-Tolerant Auto-Reconnection
-- Catches Bleak `disconnected_callback` when the physical car is switched off or battery drops.
-- Pauses active driving routines, gives voice alerts via pyttsx3/SAPI5, and enters a 5-attempt reconnect loop (15s total) before cleanly exiting.
+The exact model name and API behavior depend on the implementation and the configured SDK. AI output should be treated as advisory control input rather than a guaranteed plan.
 
-### 6. Dynamic Bluetooth Device Discovery (Mode B)
-- Scans for nearby BLE devices using `BleakScanner`, lists names/MACs/RSSI values, and lets you select and save your car's MAC address without hardcoding.
+### AI-assisted room scanning
 
-### 7. Cyberpunk Rich Terminal Cockpit
-- Built with Python's `rich` library with an animated boot sequence, colored status badges (`(*) CONNECTED`, `⚡ STREAM: 140ms`), and flight telemetry tables.
+Mode S captures keyframes while the operator walks through a home with a phone camera. The images are sent to Gemini Vision to identify visible rooms and furniture landmarks. The resulting map is written to [`home_map.json`](home_map.json) and should be reviewed manually before use.
 
----
+### Overhead optical tracking
 
-## 🏛️ System Architecture
+An overhead phone or laptop camera can track a cross made from green tape on the vehicle roof. OpenCV HSV thresholding uses the range `[35, 60, 60]` to `[85, 255, 255]` to estimate the vehicle's metric position and heading.
 
-```
+This approach is intended for small vehicles that cannot carry a smartphone or other substantial sensor payload.
+
+### Obstacle detection and automatic braking
+
+The active camera stream is processed at a target rate of 20 Hz using OpenCV contour and brightness analysis. When an object appears to occupy the forward safety zone, the software can override normal commands and send a stop packet.
+
+This is a best-effort software feature and should not be considered a substitute for physical safety controls.
+
+### BLE reconnection
+
+The driver handles Bleak disconnection callbacks when the vehicle is switched off or loses power. Active routines are paused, an audio notification may be produced through `pyttsx3`/SAPI5, and the driver attempts to reconnect up to five times over approximately 15 seconds before exiting cleanly.
+
+### BLE device discovery
+
+Mode B uses `BleakScanner` to list nearby BLE devices, including names, addresses, and RSSI values. A selected vehicle address can be saved instead of being hardcoded.
+
+### Terminal interface
+
+The terminal interface uses the `rich` library to display startup information, connection state, camera status, and telemetry tables.
+
+## System architecture
+
+```text
                                   +-----------------------------+
                                   |    User (Voice / Terminal)  |
                                   +--------------+--------------+
@@ -92,7 +85,7 @@
 |                                             |                                                  |
 |                                             v                                                  |
 |                               +---------------------------+                                    |
-|                               | 20Hz Auto-Brake Reflexes  |                                    |
+|                               | 20Hz Auto-Brake Reflexes |                                    |
 |                               +-------------+-------------+                                    |
 |                                             |                                                  |
 |                                             v                                                  |
@@ -108,158 +101,156 @@
                               +-------------------------------+
 ```
 
----
-
-## 🕹️ Autonomous Operating Modes
+## Operating modes
 
 | Mode | Key | Description |
 |:---:|:---:|---|
-| **`[1]`** | **MANUAL DRIVING** | WASD keyboard control with headlights (`L`), exhaust smoke (`K`), origin reset (`R`), and E-Stop (`SPACE`). |
-| **`[2]`** | **VOICE NAVIGATION** | SpeechRecognition (Google STT) listening for natural movement commands in English, Hindi, or other languages. |
-| **`[3]`** | **TARGET TRACKING** | OpenCV color contour tracking that drives toward recognized visual targets. |
-| **`[4]`** | **AUTONOMOUS EXPLORER** | Basic wander & turn logic that backs up and steers away when obstacles appear in camera view. |
-| **`[5]`** | **EMBODIED LLM BRAIN** | Multimodal Gemini VLM conscious agent navigating using floorplans, coordinates, and visual input. |
-| **`[S]`** | **AI ROOM SCANNER** | Phone video walkthrough tool that asks Gemini Vision to construct `home_map.json`. |
-| **`[B]`** | **BLE AUTO-DISCOVERY** | Scans and lists nearby BLE devices so you can connect to any RC car. |
-| **`[C]`** | **CAMERA CONFIG** | Switch between Laptop Webcam and Mobile Phone IP Camera stream over WiFi. |
-| **`[Q]`** | **QUIT CONSOLE** | Disconnects BLE GATT links and exits cleanly. |
+| Manual driving | `[1]` | WASD keyboard control with headlights (`L`), exhaust smoke (`K`), origin reset (`R`), and emergency stop (`SPACE`). |
+| Voice navigation | `[2]` | SpeechRecognition-based input for movement commands in English, Hindi, or other supported languages. |
+| Target tracking | `[3]` | OpenCV color-contour tracking that drives toward a recognized visual target. |
+| Autonomous explorer | `[4]` | Basic wandering and turn logic that reverses and steers away when an obstacle is detected in the camera view. |
+| Multimodal AI control | `[5]` | Gemini-based navigation using floorplans, estimated coordinates, and camera input. |
+| AI room scanner | `[S]` | Phone-video walkthrough tool that generates or updates `home_map.json` using Gemini Vision. |
+| BLE device discovery | `[B]` | Scans for nearby BLE devices and helps select a vehicle. |
+| Camera configuration | `[C]` | Switches between a laptop webcam and a mobile-phone IP camera stream over Wi-Fi. |
+| Quit | `[Q]` | Disconnects BLE links and exits the console cleanly. |
 
----
+## BLE command protocol
 
-## 📡 Reverse-Engineered Binary Protocol
+The vehicle communicates over BLE GATT using 10-byte binary command frames sent to characteristic `0xFFF2`. The driver targets a 140 ms command heartbeat.
 
-The vehicle communicates over BLE GATT using 10-byte binary command frames streamed at a **140ms heartbeat** to characteristic `0xFFF2`:
-
-```
+```text
 Byte:    0     1     2     3     4     5     6      7        8        9
 Value: [0xAA, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, <Byte 8>, <Byte 9>, <Byte 10>]
 ```
 
-### Bitmask Definitions:
-- **Byte 8**: `[Light(1)][PlayMode(2)][Spray(1)][SpeedD(1)][SpeedC(1)][SpeedB(1)][SpeedA(1)]`
-  - `SpeedA`: Forward Drive
-  - `SpeedB`: Reverse Drive
-  - `SpeedC`: Steer Left
-  - `SpeedD`: Steer Right
-  - `Light`: Headlights Toggle (1=ON, 0=OFF)
-  - `Spray`: Exhaust Smoke Generator (1=ON, 0=OFF)
-- **Byte 9**: `00 + [RightMode(1)][LeftMode(1)][RBMode(1)][Tower(1)][Bucket(1)][Arm(1)]`
-  - Directional overrides and accessory motors for construction variants.
-- **Byte 10 (`flagBit`)**: `0x01` (Supercar/Sport), `0x02` (Dump Truck), `0x03` (Heavy Machinery).
+### Bitmask definitions
 
----
+- **Byte 8:** `[Light(1)][PlayMode(2)][Spray(1)][SpeedD(1)][SpeedC(1)][SpeedB(1)][SpeedA(1)]`
+  - `SpeedA`: forward drive
+  - `SpeedB`: reverse drive
+  - `SpeedC`: steer left
+  - `SpeedD`: steer right
+  - `Light`: headlights (`1` = on, `0` = off)
+  - `Spray`: exhaust smoke generator (`1` = on, `0` = off)
+- **Byte 9:** `00 + [RightMode(1)][LeftMode(1)][RBMode(1)][Tower(1)][Bucket(1)][Arm(1)]`
+  - Directional overrides and accessory motors for construction-vehicle variants.
+- **Byte 10 (`flagBit`):** `0x01` for supercar/sport, `0x02` for dump truck, and `0x03` for heavy machinery.
 
-## 📦 Modular Codebase Structure
+This protocol was reverse-engineered for the supported vehicle hardware. Other vehicles may use different services, characteristics, packet layouts, or timing requirements.
 
-```
-RC_controller/
-├── controller.py          # Master Gear Console Orchestrator (Main Entry Point)
-├── home_map.json          # AI-generated / customizable multi-room home layout
-├── requirements.txt       # Python package dependencies
-├── .gitignore             # Git ignore configuration
-├── LICENSE                # MIT License
-├── README.md              # Documentation
+## Repository structure
+
+```text
+Gearconsole/
+├── controller.py          # Main application entry point
+├── home_map.json          # AI-generated or user-edited multi-room layout
+├── requirements.txt       # Python dependencies
+├── .gitignore
+├── LICENSE
+├── README.md
 │
-├── driver/                # Hardware & BLE Motor Driver Subsystem
+├── driver/                # Hardware and BLE motor-driver subsystem
 │   ├── __init__.py
-│   └── car_driver.py      # BLE GATT driver, 140ms streaming & auto-reconnection
+│   └── car_driver.py      # BLE GATT driver, command streaming, and reconnection
 │
-├── vision/                # Computer Vision, Optical Tracking & Video Scanner
+├── vision/                # Computer vision and video-scanning subsystem
 │   ├── __init__.py
-│   ├── vision_engine.py   # OpenCV visual perception, HUD & obstacle sonar
-│   ├── green_tracker.py   # Overhead satellite green cross marker tracker
-│   └── ai_room_scanner.py # AI walkthrough video floorplan generator
+│   ├── vision_engine.py   # Visual perception, HUD, and obstacle detection
+│   ├── green_tracker.py   # Overhead green-marker tracking
+│   └── ai_room_scanner.py # AI walkthrough and floorplan generation
 │
-├── brain/                 # Multimodal AI Cognition & Voice Synthesis
+├── brain/                 # AI and voice subsystem
 │   ├── __init__.py
-│   ├── llm_brain.py       # Gemini VLM multimodal reasoning & multilingual speech
-│   ├── voice_engine.py    # Speech recognition (STT) & audio feedback (TTS)
-│   └── ui_theme.py        # Cyberpunk Rich Terminal UI & animation engine
+│   ├── llm_brain.py       # Gemini multimodal reasoning and speech output
+│   ├── voice_engine.py    # Speech recognition and text-to-speech
+│   └── ui_theme.py        # Rich terminal interface
 │
-└── spatial/               # 2D Localization, Odometry & Multi-Room Mapping
+└── spatial/               # Localization and mapping subsystem
     ├── __init__.py
-    ├── spatial_odometry.py# 2D localization kinematics & spatial ASCII maps
-    └── room_mapper.py     # Multi-room floorplan management & pathfinding
+    ├── spatial_odometry.py# Two-dimensional localization and ASCII maps
+    └── room_mapper.py     # Room management and pathfinding
 ```
 
----
+## Quick start
 
-## 🚀 Quick Start Guide
+### Prerequisites
 
-### 1. Prerequisites
-- Python 3.10+
-- Bluetooth 4.0+ adapter on your PC/laptop
-- Google Gemini API Key
+- Python 3.10 or later
+- A Bluetooth 4.0 or later adapter
+- A Google Gemini API key for AI features
+- A compatible BLE-controlled RC vehicle
+- A camera for vision features
 
-### 2. Installation
+### Installation
 
 ```powershell
-# Clone the repository
 git clone https://github.com/Coderx838/Gearconsole.git
 cd Gearconsole
 
-# Create and activate virtual environment
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Set Gemini API Key
+### Configure the Gemini API key
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the repository root:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-### 4. Launch Gear Console
+Do not commit this file or expose the API key in logs, screenshots, or source code.
+
+### Launch
+
+Use the default laptop webcam:
 
 ```powershell
-# Default launch (Laptop Webcam)
 python controller.py
+```
 
-# Launch with Phone IP Camera stream
+Use a phone IP-camera stream:
+
+```powershell
 python controller.py --cam "http://192.168.31.239:8080/video"
 ```
 
----
+## Mobile phone camera setup
 
-## 📱 Mobile Phone Camera Setup (Overhead Satellite / FPV)
+1. Install IP Webcam on Android or IP Camera Lite on iOS.
+2. Connect the phone and computer to the same Wi-Fi network.
+3. Start the camera server in the mobile application.
+4. Launch Gear Console with the stream URL. Depending on the application, the URL may end in `/video` or `/videofeed`.
 
-1. Install **IP Webcam** (Android) or **IP Camera Lite** (iOS).
-2. Connect your phone and laptop to the same WiFi network.
-3. Tap **"Start Server"** in the app.
-4. Launch Gear Console with your phone's URL (make sure it ends with `/video`):
-   ```powershell
-   python controller.py --cam "http://<PHONE_IP>:8080/video"
-   ```
-5. *(Optional)* Stick a small cross of **green tape** on top of your car roof. Point your phone camera down at the floor, and the **Green Cross Satellite Tracker** will track $(X, Y)$ position and heading angle.
+```powershell
+python controller.py --cam "http://<PHONE_IP>:8080/video"
+```
 
----
+For overhead tracking, optionally attach a small green-tape cross to the vehicle roof and point the phone camera toward the driving area. Keep the camera stationary and ensure that the marker is visible throughout the operating area.
 
-## ⚙️ Configuration & Environment Variables
+## Configuration
 
-| Variable / Key | Default | Description |
+| Variable or key | Default | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | `None` | Google Gemini API Key for VLM brain and AI room mapping. |
-| `CAR_MAC` | `None` | Bluetooth MAC Address of the physical RC car (or auto-discover via `[B]`). |
-| `DEFAULT_CAMERA` | `0` | Default camera device index or Phone stream URL. |
+| `GEMINI_API_KEY` | Not set | Google Gemini API key used by the multimodal brain and room scanner. |
+| `CAR_MAC` | Not set | BLE address of the RC vehicle; the vehicle can also be selected through `[B]`. |
+| `DEFAULT_CAMERA` | `0` | Camera device index or phone IP-camera stream URL. |
 
----
+## Known limitations and troubleshooting
 
-## ⚠️ Known Limitations & Troubleshooting
+- **Bluetooth packet drops:** Inexpensive BLE receivers may have small buffers. Fast writes can be dropped when the Bluetooth adapter or operating system is busy. The driver uses periodic command streaming, but it cannot guarantee delivery.
+- **Dead-reckoning drift:** Estimated `(X, Y)` coordinates drift over time because of wheel slip and uneven surfaces. Use the overhead tracker or press `[R]` to reset the origin.
+- **Lighting sensitivity:** Green-marker tracking depends on the configured HSV range. Dim lighting, reflections, shadows, or yellow lighting may require changes in `vision/green_tracker.py`.
+- **Camera stream errors:** Use the camera application's video endpoint, such as `/video` or `/videofeed`, rather than its root HTML page.
+- **AI latency or invalid responses:** Network conditions, API quotas, model changes, and malformed responses can affect Mode 5 and Mode S. Verify API credentials and review generated navigation or map data before use.
+- **BLE discovery issues:** Confirm that the vehicle is powered on, within range, and not already connected to another device. On some platforms, Bluetooth permissions or adapter drivers may also be required.
+- **Obstacle detection limitations:** Camera-based detection can miss transparent, low-contrast, or poorly lit obstacles. Keep speeds low and supervise the vehicle.
 
-- **Bluetooth Packet Drops**: Cheap BLE toy car receivers have small buffers. Fast write commands can occasionally drop packets if Windows Bluetooth is congested. We mitigate this with an `asyncio.Lock()` and unblocked `response=False` writes.
-- **Dead-Reckoning Drift**: Estimated $(X, Y)$ coordinates will drift during long drives due to wheel slip on tiles/carpets. Use the overhead Green Cross Tracker or press `[R]` to re-zero.
-- **Lighting Sensitivity**: Optical green cross tracking relies on HSV color ranges. Extremely dim rooms or harsh yellow light may require fine-tuning HSV bounds in [`vision/green_tracker.py`](vision/green_tracker.py).
-- **IP Webcam URL**: Always ensure your IP camera URL ends with `/video` or `/videofeed` (not the root HTML page), or OpenCV will fail to stream frames.
+## License
 
----
-
-## 📄 License & Credits
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
+This project is distributed under the MIT License. See [`LICENSE`](LICENSE) for the complete license text.
 
 Developed with ❤️ for Autonomous Robotics & Embodied AI enthusiasts.
